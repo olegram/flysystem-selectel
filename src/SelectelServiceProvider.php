@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use ArgentCrusade\Selectel\CloudStorage\CloudStorage;
 use ArgentCrusade\Selectel\CloudStorage\Api\ApiClient;
+use Illuminate\Contracts\Cache\Repository;
+use Madewithlove\IlluminatePsrCacheBridge\Laravel\CacheItemPool;
+use Cache\Bridge\SimpleCache\SimpleCacheBridge;
 
 class SelectelServiceProvider extends ServiceProvider
 {
@@ -17,7 +20,10 @@ class SelectelServiceProvider extends ServiceProvider
     {
         Storage::extend('selectel', function ($app, $config) {
             $api = new ApiClient($config['username'], $config['password']);
-            $api->authenticate();
+
+            $psr6 = new CacheItemPool($app->make(Repository::class));
+            $psr16 = new SimpleCacheBridge($psr6);
+            $api->setCache($psr16);
 
             $storage = new CloudStorage($api);
             $container = $storage->getContainer($config['container']);
